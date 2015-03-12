@@ -42,7 +42,7 @@ public class PlayerControl : MonoBehaviour {
 	private float xPosition;
 	private float zPosition;
 	private Vector3 pMov;
-
+	public Transform currentPlatform;
 
 
 
@@ -62,7 +62,7 @@ public class PlayerControl : MonoBehaviour {
 	void Update () {
 				#region playerMovement
 				
-
+		distance = Vector3.Distance(player.transform.position,platform.transform.position);
 					playerZposition = player.transform.position.z - 5.64f;
 					transform.position += new Vector3 (0, 0, speed);
 					CameraFollow.transform.position = new Vector3 (0f, 3.9f, playerZposition);
@@ -103,10 +103,33 @@ public class PlayerControl : MonoBehaviour {
 				} else {
 						gameOverSound.Play ();
 				}
+		//Debug.Log ("distance is : " + player.bounds.center.z);
+		if (distance > 3 && distance < 3.1) {
+			platformList.Add ((GameObject)Instantiate (platform, new Vector3 (-13.35f, -4.16f, player.transform.forward.z + 30.0f), Quaternion.identity));	
+			platformCount++;
+		}
+
+		if (currentPlatform == null)
+						return;
+
+		if ((currentPlatform.GetComponent<Renderer> ().bounds.max.z + currentPlatform.GetComponent<Renderer> ().bounds.min.z) / 2 < transform.position.z) {
+						Debug.Log ("Half point reached");	
+			platformList.Add ((GameObject)Instantiate (platform, new Vector3 (-13.35f, -4.16f, player.transform.forward.z + 30.0f), Quaternion.identity));	
+			platformCount++;
+			currentPlatform = platformList[platformList.Count - 1].transform.FindChild("Ground");
+				} else {
+			Debug.Log("Half point not reached")	;	
+		}
 	}
+
+			
 
 	void OnCollisionEnter(Collision other)
 	{
+		Debug.Log ("OnCollisionEnter " + other.gameObject.tag);
+		if (other.gameObject.tag == "surface") {
+			currentPlatform = other.gameObject.transform;
+		}
 		if (other.gameObject.tag == "obsticle") {
 			// do something
 			Debug.Log("hit player!!");
@@ -118,15 +141,6 @@ public class PlayerControl : MonoBehaviour {
 			powerupCollectSound.Play (); // playing the powerup sound
 		}
 
-		if (other.gameObject.tag == "boundary") {
-			Debug.Log("hit!A SDASDA ");
-						Destroy (other.gameObject);
-						//platform.transform.position = new Vector3(player.transform.position.x,player.transform.position.y,player.transform.position.z*50);
-						platformList.Add ((GameObject)Instantiate (platform, new Vector3 (0f, 0f, player.transform.position.z + 48.0f), Quaternion.identity));	
-						platformCount++;
-						//Instantiate(platform2,new Vector3(3.52f,3.09f,player.transform.position.z+98.0f),Quaternion.identity);	
-				}
-
-	Destroy(other.gameObject);
+	//Destroy(other.gameObject);
 	}
 }
