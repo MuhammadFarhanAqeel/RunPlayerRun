@@ -24,10 +24,9 @@ public class PlayerControl : MonoBehaviour {
 	public GameObject CameraFollow;
 	public CharacterController player;
 	float playerZposition;
-	public GameObject platform;
+
 	private float pSpeed = 5f;
 	private GameObject platformHolder;
-	private List<GameObject> platformList;
 	private int platformCount = 0;
 	private float distance;
 	// * * * * * spawn part* * * * * *
@@ -42,27 +41,48 @@ public class PlayerControl : MonoBehaviour {
 	private float xPosition;
 	private float zPosition;
 	private Vector3 pMov;
-	public Transform currentPlatform;
 
+
+	public List<Transform> Platform;
+	Bounds _bounds;
+	Transform lastPlatform;
+	
+	List<Transform> platforms = new List<Transform>();
 
 
 
 	// Use this for initialization
 	void Start () {
-		controller = GetComponent<CharacterController>();
+		controller = GetComponent<CharacterController> ();
+		transform.position = Vector3.zero;
+				#region smasher
+				for (int i = 0; i<10; i++) {
+			
+						Transform platform = (Transform)Instantiate (Platform [Random.Range (0, Platform.Count)]);
+			platform.transform.position = new Vector3(-13.51f,-4.05f,20.78f);
+						if (i > 0) {
+								Bounds prevbounds = platforms [i - 1].FindChild ("Surface").GetComponent<MeshRenderer> ().bounds;
+								Bounds bounds = platform.FindChild ("Surface").GetComponent<MeshRenderer> ().bounds;
+				
+								//platform.transform.position = platforms[i - 1].position + new Vector3(0,0,bounds.extents.z + prevbounds.extents.z); 
+			
+								_bounds = bounds;
+						} else {
+								platform.transform.position = Vector3.zero;
+						}
+			
+						//lastPlatform = platform;
+			
+						platforms.Add (platform);
 
-		platformList = new List<GameObject> ();
-		player = GetComponent<CharacterController> ();
-		//platformHolder = Instantiate (platform, new Vector3 (3.52f, 3.09f, 15.5f), Quaternion.identity);
-		platformList.Add((GameObject)Instantiate (platform, new Vector3 (-13.35f,-4.16f, 19.5f), Quaternion.identity));
+						#endregion
 
-	}
+				}
+		}
 	
-	// Update is called once per frame
-	void Update () {
+void FixedUpdate() {
 				#region playerMovement
 				
-		distance = Vector3.Distance(player.transform.position,platform.transform.position);
 					playerZposition = player.transform.position.z - 5.64f;
 					transform.position += new Vector3 (0, 0, speed);
 					CameraFollow.transform.position = new Vector3 (0f, 3.9f, playerZposition);
@@ -104,32 +124,35 @@ public class PlayerControl : MonoBehaviour {
 						gameOverSound.Play ();
 				}
 		//Debug.Log ("distance is : " + player.bounds.center.z);
-		if (distance > 3 && distance < 3.1) {
-			platformList.Add ((GameObject)Instantiate (platform, new Vector3 (-13.35f, -4.16f, player.transform.forward.z + 30.0f), Quaternion.identity));	
-			platformCount++;
+
+		for(int i = 0;i < platforms.Count; i++){
+			if(platforms[i].position.z < transform.position.z - _bounds.extents.z){
+				Destroy(platforms[i].gameObject);
+				platforms.RemoveAt(i);
+				Transform platform = (Transform)Instantiate(Platform[Random.Range(0,Platform.Count)]);
+				
+				Bounds prevbounds = platforms[platforms.Count - 1].FindChild("Surface").GetComponent<MeshRenderer>().bounds;
+				Bounds bounds = platform.FindChild("Surface").GetComponent<MeshRenderer>().bounds;
+				
+				platform.transform.position = platforms[platforms.Count - 1].position + new Vector3(0,0,bounds.extents.z + prevbounds.extents.z); 
+				
+				_bounds = bounds;
+				
+				platforms.Add(platform);
+				
+				break;
+				//platforms[i].position = lastPlatform.position + new Vector3(0,0,_bounds.extents.z * 2);
+				//lastPlatform = platforms[i];
+			}
 		}
 
-		if (currentPlatform == null)
-						return;
 
-		if ((currentPlatform.GetComponent<Renderer> ().bounds.max.z + currentPlatform.GetComponent<Renderer> ().bounds.min.z) / 2 < transform.position.z) {
-						Debug.Log ("Half point reached");	
-			platformList.Add ((GameObject)Instantiate (platform, new Vector3 (-13.35f, -4.16f, player.transform.forward.z + 30.0f), Quaternion.identity));	
-			platformCount++;
-			currentPlatform = platformList[platformList.Count - 1].transform.FindChild("Ground");
-				} else {
-			Debug.Log("Half point not reached")	;	
-		}
+
 	}
-
-			
 
 	void OnCollisionEnter(Collision other)
 	{
-		Debug.Log ("OnCollisionEnter " + other.gameObject.tag);
-		if (other.gameObject.tag == "surface") {
-			currentPlatform = other.gameObject.transform;
-		}
+
 		if (other.gameObject.tag == "obsticle") {
 			// do something
 			Debug.Log("hit player!!");
