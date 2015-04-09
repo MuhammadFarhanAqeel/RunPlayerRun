@@ -59,12 +59,13 @@ public class PlayerControl : MonoBehaviour {
 				for (int i = 0; i<10; i++) {
 			
 						Transform platform = (Transform)Instantiate (Platform [Random.Range (0, Platform.Count)]);
-			platform.transform.position = new Vector3(-13.51f,-4.05f,20.78f);
+
+						platform.transform.position = new Vector3(-13.51f,-4.05f,20.78f);
 						if (i > 0) {
 								Bounds prevbounds = platforms [i - 1].FindChild ("Surface").GetComponent<MeshRenderer> ().bounds;
 								Bounds bounds = platform.FindChild ("Surface").GetComponent<MeshRenderer> ().bounds;
 				
-								//platform.transform.position = platforms[i - 1].position + new Vector3(0,0,bounds.extents.z + prevbounds.extents.z); 
+								platform.transform.position = platforms[i - 1].position + new Vector3(0,0,bounds.extents.z + prevbounds.extents.z); 
 			
 								_bounds = bounds;
 						} else {
@@ -111,7 +112,6 @@ void FixedUpdate() {
 				
 		player.Move (moveDirection);
 		moveDirection.y -= gravity * Time.deltaTime;
-		#endregion		
 
 				if (controller.isGrounded)
 						isGrounded = true;
@@ -124,6 +124,7 @@ void FixedUpdate() {
 						gameOverSound.Play ();
 				}
 		//Debug.Log ("distance is : " + player.bounds.center.z);
+		#endregion		
 
 		for(int i = 0;i < platforms.Count; i++){
 			if(platforms[i].position.z < transform.position.z - _bounds.extents.z){
